@@ -1,7 +1,6 @@
 require 'rake'
 require 'rake/testtask'
 require 'rake/rdoctask'
-require 'rake/gempackagetask'
 
 desc 'Default: run unit tests.'
 task :default => :test
@@ -23,28 +22,30 @@ Rake::RDocTask.new(:rdoc) do |rdoc|
   rdoc.rdoc_files.include('lib/**/*.rb')
 end
 
-PKG_FILES = FileList[
-  '[a-zA-Z]*',
-  'lib/**/*',
-  'rails/**/*',
-  'tasks/**/*',
-  'test/**/*'
-]
 
-spec = Gem::Specification.new do |s|
-  s.name = "active_merchant_testing"
-  s.version = "0.0.1"
-  s.author = "Ben Wiseley, Thomas Brice"
-  s.email = "tomtoday@gmail.com"
-  s.platform = Gem::Platform::RUBY
-  s.summary = "ActiveMerchant testing gateways"
-  s.files = PKG_FILES.to_a
-  s.require_path = "lib"
-  s.has_rdoc = false
-  s.extra_rdoc_files = ["README"]
+def gemspec
+  @gemspec ||= begin
+    file = File.expand_path("../active_merchant_testing.gemspec", __FILE__)
+    eval(File.read(file), binding, file)
+  end
 end
 
-desc 'Turn this plugin into a gem.'
-Rake::GemPackageTask.new(spec) do |pkg|
-  pkg.gem_spec = spec
+begin
+  require 'rake/gempackagetask'
+  Rake::GemPackageTask.new(gemspec) do |pkg|
+    pkg.gem_spec = gemspec
+  end
+  task :gem => :gemspec
+rescue LoadError
+  task(:gem){abort "`gem install rake` to package gems"}
+end
+
+desc "Install the gem locally"
+task :install => :gem do
+  sh "gem install pkg/#{gemspec.full_name}.gem"
+end
+
+desc "Validate the gemspec"
+task :gemspec do
+  gemspec.validate
 end
