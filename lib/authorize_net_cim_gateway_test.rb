@@ -59,7 +59,7 @@ class AuthorizeNetCimGatewayTest < ActiveMerchant::Billing::AuthorizeNetCimGatew
   end
 
   private
-
+  
   def test_credit_card(number = '4242424242424242', options = {})
     defaults = {
       :number => number,
@@ -76,9 +76,10 @@ class AuthorizeNetCimGatewayTest < ActiveMerchant::Billing::AuthorizeNetCimGatew
 
   def test_address(options = {})
     {
-      :name => 'Jim Smith',
-      :address1 => '1234 My Street',
-      :address2 => 'Apt 1',
+      :first_name => 'Jim',
+      :last_name => 'Smith',
+      :address => '1234 My Street',
+      :address1 => 'Apt 1',
       :company => 'Widgets Inc',
       :city => 'Ottawa',
       :state => 'ON',
@@ -104,6 +105,9 @@ class AuthorizeNetCimGatewayTest < ActiveMerchant::Billing::AuthorizeNetCimGatew
           </message>
         </messages>
         <customerProfileId>#{@test_customer_profile_id}</customerProfileId>
+        <customerPaymentProfileIdList>
+          <numericString>#{@test_customer_payment_profile_id}</numericString>
+        </customerPaymentProfileIdList>
       </createCustomerProfileResponse>
     XML
   end
@@ -207,7 +211,7 @@ class AuthorizeNetCimGatewayTest < ActiveMerchant::Billing::AuthorizeNetCimGatew
     XML
   end
 
-  def successful_get_customer_profile_response_xml
+  def successful_get_customer_profile_response_single_xml
     <<-XML
       <?xml version="1.0" encoding="utf-8" ?>
       <getCustomerProfileResponse
@@ -229,7 +233,7 @@ class AuthorizeNetCimGatewayTest < ActiveMerchant::Billing::AuthorizeNetCimGatew
             <payment>
               <creditCard>
                   <cardNumber>#{test_credit_card.number}</cardNumber>
-                  <expirationDate>#{CIMGATEWAY.send(:expdate, test_credit_card)}</expirationDate>
+                  <expirationDate>#{expdate(test_credit_card)}</expirationDate>
               </creditCard>
             </payment>
           </paymentProfiles>
@@ -238,7 +242,7 @@ class AuthorizeNetCimGatewayTest < ActiveMerchant::Billing::AuthorizeNetCimGatew
     XML
   end
 
-  def successful_get_customer_profile_response_with_multiple_payment_profiles_xml
+  def successful_get_customer_profile_response_xml
     <<-XML
       <?xml version="1.0" encoding="utf-8"?>
       <getCustomerProfileResponse xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd">
@@ -259,7 +263,7 @@ class AuthorizeNetCimGatewayTest < ActiveMerchant::Billing::AuthorizeNetCimGatew
             <payment>
               <creditCard>
                 <cardNumber>#{test_credit_card.number}</cardNumber>
-                <expirationDate>#{CIMGATEWAY.send(:expdate, test_credit_card)}</expirationDate>
+                <expirationDate>#{expdate(test_credit_card)}</expirationDate>
               </creditCard>
             </payment>
           </paymentProfiles>
@@ -293,17 +297,25 @@ class AuthorizeNetCimGatewayTest < ActiveMerchant::Billing::AuthorizeNetCimGatew
             <text>Successful.</text>
           </message>
         </messages>
-        <profile>
-          <paymentProfiles>
-            <customerPaymentProfileId>#{@test_customer_payment_profile_id}</customerPaymentProfileId>
-            <payment>
-              <creditCard>
-                  <cardNumber>#{test_credit_card.number}</cardNumber>
-                  <expirationDate>#{CIMGATEWAY.send(:expdate, test_credit_card)}</expirationDate>
-              </creditCard>
-            </payment>
-          </paymentProfiles>
-        </profile>
+        <paymentProfile>
+          <billTo>
+            <firstName>#{test_address[:first_name]}</firstName>
+            <lastName>#{test_address[:last_name]}</lastName>
+            <company>#{test_address[:company]}</company>
+            <address>#{test_address[:address]}</address>
+            <city>#{test_address[:city]}</city>
+            <state>#{test_address[:state]}</state>
+            <zip>#{test_address[:zip]}</zip>
+            <country>#{test_address[:country]}</country>
+          </billTo>
+          <customerPaymentProfileId>#{@test_customer_payment_profile_id}</customerPaymentProfileId>
+          <payment>
+            <creditCard>
+                <cardNumber>#{test_credit_card.number}</cardNumber>
+                <expirationDate>#{expdate(test_credit_card)}</expirationDate>
+            </creditCard>
+          </payment>
+        </paymentProfile>
       </getCustomerPaymentProfileResponse>
     XML
   end
