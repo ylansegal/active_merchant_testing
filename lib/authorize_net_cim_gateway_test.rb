@@ -1,11 +1,14 @@
 class AuthorizeNetCimGatewayTest < ActiveMerchant::Billing::AuthorizeNetCimGateway
-
+  cattr_accessor :desired_result_type
+  @@desired_result_type ||= 'successful'
+   
   def initialize(options = {})
     @options = {:login => "X", :password => "Y"}
     @test_amount = 100
     @test_customer_profile_id = '3187'
     @test_customer_payment_profile_id = '7813'
     @test_customer_address_id = '4321'
+    @test_transaction_id = '508276300'
     @test_payment = {
       :credit_card => test_credit_card
     }
@@ -37,11 +40,22 @@ class AuthorizeNetCimGatewayTest < ActiveMerchant::Billing::AuthorizeNetCimGatew
     }
 
   end
-
+  
+  def build_request(action, options = {})
+    if options && options[:transaction]
+      @transaction_type = options[:transaction][:type]
+    end
+    super
+  end
+  
   def commit(action, request)
     url = test? ? test_url : live_url
     #xml = ssl_post(url, request, "Content-Type" => "text/xml")
-    xml = eval("successful_#{action}_response_xml")
+    if @transaction_type
+      xml = send("#{desired_result_type}_#{action}_response_xml", @transaction_type)
+    else
+      xml = send("#{desired_result_type}_#{action}_response_xml")
+    end
 
     response_params = parse(action, xml)
 
@@ -400,14 +414,15 @@ class AuthorizeNetCimGatewayTest < ActiveMerchant::Billing::AuthorizeNetCimGatew
     XML
   end
 
-  SUCCESSFUL_DIRECT_RESPONSE = {
-    :auth_only => '1,1,1,This transaction has been approved.,Gw4NGI,Y,508223659,,,100.00,CC,auth_only,Up to 20 chars,,,,,,,,,,,Up to 255 Characters,,,,,,,,,,,,,,6E5334C13C78EA078173565FD67318E4,,2,,,,,,,,,,,,,,,,,,,,,,,,,,,,',
-    :capture_only => '1,1,1,This transaction has been approved.,,Y,508223660,,,100.00,CC,capture_only,Up to 20 chars,,,,,,,,,,,Up to 255 Characters,,,,,,,,,,,,,,6E5334C13C78EA078173565FD67318E4,,2,,,,,,,,,,,,,,,,,,,,,,,,,,,,',
-    :auth_capture => '1,1,1,This transaction has been approved.,d1GENk,Y,508223661,32968c18334f16525227,Store purchase,1.00,CC,auth_capture,,Longbob,Longsen,,,,,,,,,,,,,,,,,,,,,,,269862C030129C1173727CC10B1935ED,P,2,,,,,,,,,,,,,,,,,,,,,,,,,,,,'
-  }
+  def successful_direct_response
+    {
+    :auth_only => "1,1,1,This transaction has been approved.,Gw4NGI,Y,#{@test_transaction_id},,,100.00,CC,auth_only,Up to 20 chars,,,,,,,,,,,Up to 255 Characters,,,,,,,,,,,,,,6E5334C13C78EA078173565FD67318E4,,2,,,,,,,,,,,,,,,,,,,,,,,,,,,,",
+    :capture_only => "1,1,1,This transaction has been approved.,,Y,#{@test_transaction_id},,,100.00,CC,capture_only,Up to 20 chars,,,,,,,,,,,Up to 255 Characters,,,,,,,,,,,,,,6E5334C13C78EA078173565FD67318E4,,2,,,,,,,,,,,,,,,,,,,,,,,,,,,,",
+    :auth_capture => "1,1,1,This transaction has been approved.,d1GENk,Y,#{@test_transaction_id},32968c18334f16525227,Store purchase,1.00,CC,auth_capture,,Longbob,Longsen,,,,,,,,,,,,,,,,,,,,,,,269862C030129C1173727CC10B1935ED,P,2,,,,,,,,,,,,,,,,,,,,,,,,,,,,"
+    }
+  end
 
-  def successful_create_customer_profile_transaction_response_xml #()
-    transaction_type = :auth_capture
+  def successful_create_customer_profile_transaction_response_xml(transaction_type = :auth_capture)
     <<-XML
       <?xml version="1.0" encoding="utf-8" ?>
       <createCustomerProfileTransactionResponse
@@ -422,7 +437,7 @@ class AuthorizeNetCimGatewayTest < ActiveMerchant::Billing::AuthorizeNetCimGatew
             <text>Successful.</text>
           </message>
         </messages>
-        <directResponse>#{SUCCESSFUL_DIRECT_RESPONSE[transaction_type]}</directResponse>
+        <directResponse>#{successful_direct_response[transaction_type]}</directResponse>
       </createCustomerProfileTransactionResponse>
     XML
   end
@@ -462,7 +477,7 @@ class AuthorizeNetCimGatewayTest < ActiveMerchant::Billing::AuthorizeNetCimGatew
             <text>Successful.</text>
           </message>
         </messages>
-        <directResponse>1,1,1,This transaction has been approved.,DEsVh8,Y,508276300,none,Test transaction for ValidateCustomerPaymentProfile.,0.01,CC,auth_only,Up to 20 chars,,,,,,,,,,,Up to 255 Characters,John,Doe,Widgets, Inc,1234 Fake Street,Anytown,MD,12345,USA,0.0000,0.0000,0.0000,TRUE,none,7EB3A44624C0C10FAAE47E276B48BF17,,2,,,,,,,,,,,,,,,,,,,,,,,,,,,,</directResponse>
+        <directResponse>1,1,1,This transaction has been approved.,DEsVh8,Y,#{@test_transaction_id},none,Test transaction for ValidateCustomerPaymentProfile.,0.01,CC,auth_only,Up to 20 chars,,,,,,,,,,,Up to 255 Characters,John,Doe,Widgets, Inc,1234 Fake Street,Anytown,MD,12345,USA,0.0000,0.0000,0.0000,TRUE,none,7EB3A44624C0C10FAAE47E276B48BF17,,2,,,,,,,,,,,,,,,,,,,,,,,,,,,,</directResponse>
       </validateCustomerPaymentProfileResponse>
     XML
   end
