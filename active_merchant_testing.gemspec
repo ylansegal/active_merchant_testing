@@ -8,6 +8,5 @@ Gem::Specification.new do |s|
   s.description      = "This library contains stubbed gateways to assit in testing ActiveMerchant apps."
   s.files            = Dir.glob("lib/**/*") + %w(README)
   s.require_path     = "lib"
-  s.has_rdoc         = false
   s.extra_rdoc_files = ["README"]
 end
