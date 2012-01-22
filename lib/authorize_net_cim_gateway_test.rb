@@ -3,6 +3,7 @@ class AuthorizeNetCimGatewayTest < ActiveMerchant::Billing::AuthorizeNetCimGatew
   @@desired_result_type ||= 'successful'
    
   def initialize(options = {})
+=begin    
     @options = {:login => "X", :password => "Y"}
     @test_amount = 100
     @test_customer_profile_id = '3187'
@@ -38,7 +39,8 @@ class AuthorizeNetCimGatewayTest < ActiveMerchant::Billing::AuthorizeNetCimGatew
       :ref_id => '1234', # Optional
       :profile => @test_profile
     }
-
+=end
+  super
   end
   
   def build_request(action, options = {})
