@@ -3,42 +3,7 @@ class AuthorizeNetCimGatewayTest < ActiveMerchant::Billing::AuthorizeNetCimGatew
   @@desired_result_type ||= 'successful'
    
   def initialize(options = {})
-    @options = {:login => "X", :password => "Y"}
-    @test_amount = 100
-    @test_customer_profile_id = '3187'
-    @test_customer_payment_profile_id = '7813'
-    @test_customer_address_id = '4321'
-    @test_transaction_id = '508276300'
-    @test_payment = {
-      :credit_card => test_credit_card
-    }
-    @test_profile = {
-      :merchant_customer_id => 'Up to 20 chars', # Optional
-      :description => 'Up to 255 Characters', # Optional
-      :email => 'Up to 255 Characters', # Optional
-      :payment_profiles => { # Optional
-        :customer_type => 'individual or business', # Optional
-        :bill_to => test_address,
-        :payment => @test_payment
-      },
-      :ship_to_list => {
-        :first_name => 'John',
-        :last_name => 'Doe',
-        :company => 'Widgets, Inc',
-        :address1 => '1234 Fake Street',
-        :city => 'Anytown',
-        :state => 'MD',
-        :zip => '12345',
-        :country => 'USA',
-        :phone_number => '(123)123-1234', # Optional - Up to 25 digits (no letters)
-        :fax_number => '(123)123-1234' # Optional - Up to 25 digits (no letters)
-      }
-    }
-    @test_options = {
-      :ref_id => '1234', # Optional
-      :profile => @test_profile
-    }
-
+   super
   end
   
   def build_request(action, options = {})
