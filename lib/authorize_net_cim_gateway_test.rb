@@ -3,6 +3,10 @@ class AuthorizeNetCimGatewayTest < ActiveMerchant::Billing::AuthorizeNetCimGatew
   @@desired_result_type ||= 'successful'
    
   def initialize(options = {})
+    @test_customer_profile_id = '3187'
+    @test_customer_payment_profile_id = '7813'
+    @test_customer_address_id = '4321'
+    @test_transaction_id = '508276300'
    super
   end
   
