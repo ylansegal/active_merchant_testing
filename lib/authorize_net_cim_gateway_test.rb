@@ -62,16 +62,14 @@ class AuthorizeNetCimGatewayTest < ActiveMerchant::Billing::AuthorizeNetCimGatew
     message = response_params['messages']['message']['text']
     test_mode = test? || message =~ /Test Mode/
     success = response_params['messages']['result_code'] == 'Ok'
-
-    response = ActiveMerchant::Billing::Response.new(success, message, response_params,
+    response_params['direct_response'] = parse_direct_response(response_params['direct_response']) if response_params['direct_response']
+    transaction_id = response_params['direct_response']['transaction_id'] if response_params['direct_response']
+    ActiveMerchant::Billing::Response.new(success, message, response_params,
       :test => test_mode,
-      :authorization => response_params['customer_profile_id'] || (response_params['profile'] ? response_params['profile']['customer_profile_id'] : nil)
+      :authorization => transaction_id || response_params['customer_profile_id'] || (response_params['profile'] ? response_params['profile']['customer_profile_id'] : nil)
     )
-
-    response.params['direct_response'] = parse_direct_response(response) if response.params['direct_response']
-    response
   end
-
+  
   private
   
   def test_credit_card(number = '4242424242424242', options = {})
