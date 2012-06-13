@@ -80,7 +80,7 @@ class AuthorizeNetCimGatewayTest < ActiveMerchant::Billing::AuthorizeNetCimGatew
       :first_name => 'Longbob',
       :last_name => 'Longsen',
       :verification_value => '123',
-      :type => 'visa'
+      :brand => 'visa'
     }.update(options)
 
     ActiveMerchant::Billing::CreditCard.new(defaults)
